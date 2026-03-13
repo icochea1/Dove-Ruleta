@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es" style="background: black">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="My App">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>RULETA DOVE</title>
+  <style>
+    @font-face {
+      font-family: 'SofiaPro';
+      src: url('fonts/SofiaPro.otf') format('opentype');
+      font-weight: normal;
+    }
+    @font-face {
+      font-family: 'SofiaLight';
+      src: url('fonts/SofiaLight.otf') format('opentype');
+      font-weight: normal;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'SofiaPro', sans-serif;
+    }
+
+    /* ── SCREENS ── */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ── WHEEL SCREEN ── */
+    #roulette-screen {
+      background: url('images/aaBG1.png') center center / cover no-repeat;
+      justify-content: space-between;
+      padding: 4vh 0 4vh;
+    }
+
+    .screen-header {
+      width: min(72vw, 340px);
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .screen-footer {
+      width: min(80vw, 380px);
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: min(78vw, 74vh);
+      height: min(78vw, 74vh);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Pointer/arrow at the top */
+    .wheel-pointer {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      width: clamp(30px, 5vw, 46px);
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+      pointer-events: none;
+    }
+
+    #wheel-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      will-change: transform;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: filter 0.2s;
+    }
+    #wheel-img:active { filter: brightness(0.93); }
+
+    /* ── WIN SCREEN ── */
+    #win-screen {
+      background: url('images/aaBG1.png') center center / cover no-repeat;
+    }
+
+    #win-screen .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(8px, 2vh, 18px);
+      padding: 24px;
+      text-align: center;
+    }
+
+    #win-screen h1 {
+      font-family: 'SofiaPro', sans-serif;
+      font-size: 100px;
+      color: #fff;
+      line-height: 1;
+    }
+
+    #win-screen .prize-name {
+      font-family: 'SofiaLight', sans-serif;
+      font-size: 50px;
+      color: #fff;
+      letter-spacing: 0.02em;
+    }
+
+    #win-screen .prize-img {
+      width: 300px;
+      height: 300px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 16px rgba(0,0,0,0.2));
+    }
+
+    #win-screen .dove-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-family: 'SofiaPro', sans-serif;
+      font-size: clamp(18px, 5vw, 32px);
+      margin-top: 8px;
+    }
+    #win-screen .dove-logo img {
+      height: clamp(28px, 6vw, 44px);
+      filter: brightness(0) invert(1);
+    }
+
+    #next-participant-win {
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+      font-family: 'SofiaPro', sans-serif;
+      font-size: 30px;
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: 2px solid rgba(255,255,255,0.7);
+      border-radius: 50px;
+      padding: 12px 36px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    #next-participant-win:hover { background: rgba(255,255,255,0.4); }
+
+    /* ── NO STOCK SCREEN ── */
+    #nostock-screen {
+      background: url('images/aaBG1.png') center center / cover no-repeat;
+    }
+    .nostock-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 2.5vh, 24px);
+      padding: 40px 32px;
+      text-align: center;
+    }
+    .nostock-icon {
+      font-size: clamp(48px, 12vw, 96px);
+      line-height: 1;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+    }
+    .nostock-title {
+      font-family: 'SofiaPro', sans-serif;
+      font-size: clamp(36px, 9vw, 72px);
+      color: #fff;
+      line-height: 1;
+    }
+    .nostock-msg {
+      font-family: 'SofiaLight', sans-serif;
+      font-size: clamp(16px, 3.5vw, 28px);
+      color: #fff;
+      line-height: 1.5;
+      max-width: 520px;
+    }
+    .nostock-logo {
+      height: clamp(40px, 8vw, 70px);
+      margin-top: 12px;
+    }
+
+    /* ── SECRET ADMIN BTN ── */
+    #secret-btn {
+      position: fixed;
+      top: 0; right: 0;
+      width: 48px; height: 48px;
+      z-index: 999;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    /* ── ADMIN SCREEN ── */
+    #admin-screen {
+      background: #fff;
+      padding: 32px 24px;
+      overflow-y: auto;
+      align-items: stretch;
+      max-width: 100%;
+      width: 100%;
+      margin: auto;
+    }
+    #admin-screen.hidden { display: none !important; }
+    #admin-screen h2 {
+      font-size: 30px; font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+    #admin-screen .subtitle {
+      font-size: 12px; color: #888;
+      text-align: center; margin-bottom: 20px;
+    }
+    .stock-item {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 10px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      padding: 8px 14px;
+    }
+    .stock-item .prize-icon {
+      width: 36px; height: 36px;
+      object-fit: contain; flex-shrink: 0;
+    }
+    .stock-item label {
+      flex: 1; font-size: 30px;
+      font-weight: 600; color: #333;
+    }
+    .stock-item .slice-tag {
+      font-size: 20px; color: #aaa;
+      display: block; font-weight: normal;
+    }
+    .stock-item input {
+      width: 64px; padding: 6px 8px;
+      border: 1px solid #ddd; border-radius: 8px;
+      font-size: 30px; text-align: center;
+      font-weight: bold;
+    }
+    .admin-actions {
+      display: flex; gap: 10px; margin-top: 18px;
+    }
+    #close-admin, #reset-stock {
+      flex: 1;
+      border: none; border-radius: 50px;
+      padding: 11px 0; font-size: 13px;
+      font-weight: bold; cursor: pointer;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    #close-admin { background: #000; color: #fff; }
+    #reset-stock { background: #f0f0f0; color: #333; }
+  </style>
+</head>
+<body>
+
+  <!-- Secret admin button -->
+  <div id="secret-btn"></div>
+
+  <!-- ══ WHEEL SCREEN ══ -->
+  <div id="roulette-screen" class="screen">
+    <img class="screen-header" src="images/header.png" alt="Dove UV Repair & Glow">
+    <div class="wheel-wrapper">
+      <img class="wheel-pointer" src="images/flecha.png" alt="▼">
+      <img id="wheel-img" src="images/wheel.png" alt="Ruleta" draggable="false">
+    </div>
+    <img class="screen-footer" src="images/footer.png" alt="#EfectoDoveUV">
+  </div>
+
+  <!-- ══ WIN SCREEN ══ -->
+  <div id="win-screen" class="screen hidden">
+    <div class="content">
+      <h1>¡Ganaste!</h1>
+      <p class="prize-name" id="win-prize-text">01 abanico</p>
+      <img id="win-prize-img" class="prize-img" src="" alt="Premio">
+      <div class="dove-logo" style="position: absolute;bottom: 5%;">
+        <img src="images/footer2.png" alt="Dove logo" style="height: 70px">
+      </div>
+      <button id="next-participant-win">VOLVER A JUGAR</button>
+    </div>
+  </div>
+
+  <!-- ══ NO STOCK SCREEN ══ -->
+  <div id="nostock-screen" class="screen hidden">
+    <div class="nostock-content">
+      <div class="nostock-icon">⚠️</div>
+      <h2 class="nostock-title">¡Sin premios!</h2>
+      <p class="nostock-msg">El stock de todos los premios se ha agotado.<br>Por favor contacta al administrador.</p>
+      <img src="images/footer2.png" alt="Dove" class="nostock-logo">
+    </div>
+  </div>
+
+  <!-- ══ ADMIN SCREEN ══ -->
+  <div id="admin-screen" class="screen hidden">
+    <h2>Stock de premios</h2>
+    <p class="subtitle">Toca un número para editarlo. Los cambios se guardan automáticamente.</p>
+    <div id="stock-container"></div>
+    <div class="admin-actions">
+      <button id="reset-stock">Resetear</button>
+      <button id="close-admin">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    /*
+      SLICE MAP — clockwise from 12 o'clock (verified from screenshot):
+        0 → top-left wedge      → abanico
+        1 → top-right wedge     → logo (paloma dorada)
+        2 → right wedge         → gorra
+        3 → bottom-right wedge  → pañuelo
+        4 → bottom wedge        → ventilador
+        5 → bottom-left wedge   → abanico
+        6 → left wedge          → gorra
+        7 → top-left-2 wedge    → pañuelo
+
+      The dividing line between slice 7 and slice 0 sits exactly at 12 o'clock
+      so IMAGE_OFFSET_DEG = 0.
+    */
+    const SLICE_PRIZES = [
+      { name: '01 abanico',    img: 'images/abanico.png'    }, // slice 0 — top-left
+      { name: '01 logo Dove',  img: 'images/logo.png'       }, // slice 1 — top-right
+      { name: '01 gorra',      img: 'images/gorra.png'      }, // slice 2 — right
+      { name: '01 pañuelo',    img: 'images/panuelo.png'    }, // slice 3 — bottom-right
+      { name: '01 ventilador', img: 'images/ventilador.png' }, // slice 4 — bottom
+      { name: '01 abanico',    img: 'images/abanico.png'    }, // slice 5 — bottom-left
+      { name: '01 gorra',      img: 'images/gorra.png'      }, // slice 6 — left
+      { name: '01 pañuelo',    img: 'images/panuelo.png'    }, // slice 7 — top-left-2
+    ];
+
+    const SLICE_COUNT = 8;
+    const SLICE_DEG   = 360 / SLICE_COUNT; // 45°
+
+    /* ── Stock ── */
+    const defaultStock = {};
+    SLICE_PRIZES.forEach((p, i) => { defaultStock[i] = 10; });
+
+    function loadStock() {
+      try {
+        const s = localStorage.getItem('dove_stock');
+        return s ? JSON.parse(s) : { ...defaultStock };
+      } catch { return { ...defaultStock }; }
+    }
+    function saveStock(s) {
+      try { localStorage.setItem('dove_stock', JSON.stringify(s)); } catch {}
+    }
+
+    let stock = loadStock();
+
+    /* ── Elements ── */
+    const wheelImg      = document.getElementById('wheel-img');
+    const rouletteScr   = document.getElementById('roulette-screen');
+    const winScr        = document.getElementById('win-screen');
+    const nostockScr    = document.getElementById('nostock-screen');
+    const winPrizeText  = document.getElementById('win-prize-text');
+    const winPrizeImg   = document.getElementById('win-prize-img');
+
+    let currentAngle = 0;
+    let isSpinning   = false;
+
+    /* ── Stock check ── */
+    function totalStock() {
+      return Object.values(stock).reduce((sum, v) => sum + (v || 0), 0);
+    }
+
+    function checkStock() {
+      if (totalStock() === 0) {
+        console.warn('⚠️ Sin stock — bloqueando ruleta');
+        rouletteScr.classList.add('hidden');
+        winScr.classList.add('hidden');
+        nostockScr.classList.remove('hidden');
+        return false;
+      }
+      return true;
+    }
+
+    // Check on page load
+    checkStock();
+
+    /*
+      CALIBRATION:
+      wheel.png at rest has the vertical dividing line at 12 o'clock.
+      Slice 0 is the LEFT wedge — its center is 22.5° to the LEFT of top = 337.5°.
+      Slice 1 is the RIGHT wedge — its center is 22.5° to the RIGHT of top = 22.5°.
+
+      Formula for slice i center (clockwise from top):
+        center = (i * 45 + 22.5 + IMAGE_OFFSET_DEG + 360) % 360
+
+      With IMAGE_OFFSET_DEG = +22.5:
+        Slice 0 center = 0 + 22.5 + 22.5 = 45° ← still wrong
+
+      The correct approach: slice 0 (top-left wedge) center is at 337.5° = -22.5°
+      That means its 0-based center WITHOUT offset = 22.5° (standard)
+      But we need to subtract 45° to align slice 0 to the left wedge:
+      IMAGE_OFFSET_DEG = -22.5 gives center[0] = 22.5 - 22.5 = 0° (ON the line)
+      IMAGE_OFFSET_DEG = +22.5 gives center[0] = 22.5 + 22.5 = 45° (center of right wedge = slice 1)
+
+      Correct: slice 0's center = 337.5° = i*45 + IMAGE_OFFSET
+      0*45 + IMAGE_OFFSET = 337.5  →  IMAGE_OFFSET = 337.5° = -22.5°... but that gives 0° above.
+
+      ROOT CAUSE: The standard formula i*45+22.5 assumes slice 0 center is at 22.5°.
+      But in this wheel, slice 0 center is at 337.5° (22.5° to LEFT of top).
+      Difference = 337.5 - 22.5 = 315° = -45°.
+      So IMAGE_OFFSET_DEG = -45.
+    */
+    const IMAGE_OFFSET_DEG = -45;
+
+    /* ── Spin logic ── */
+    wheelImg.addEventListener('click', () => {
+      if (isSpinning) return;
+      if (!checkStock()) return;
+
+      // Build pool of available slices
+      const available = [];
+      for (let i = 0; i < SLICE_COUNT; i++) {
+        if ((stock[i] ?? 0) > 0) available.push(i);
+      }
+
+      // Pick winner slice index
+      let winnerIdx = available.length > 0
+        ? available[Math.floor(Math.random() * available.length)]
+        : Math.floor(Math.random() * SLICE_COUNT);
+
+      // Slice center in image's own frame (degrees clockwise from top)
+      const sliceCenter = ((winnerIdx * SLICE_DEG) + (SLICE_DEG / 2) + IMAGE_OFFSET_DEG + 360) % 360;
+
+      // How much to rotate so sliceCenter arrives at 0° (top pointer)
+      const toTop = (360 - sliceCenter) % 360;
+      const extraSpins = (Math.floor(Math.random() * 5) + 8) * 360;
+      const targetAngle = extraSpins + toTop;
+
+      console.log('═══════════════════════════════════');
+      console.log('Winner index   :', winnerIdx);
+      console.log('Winner prize   :', SLICE_PRIZES[winnerIdx].name);
+      console.log('SLICE_DEG      :', SLICE_DEG);
+      console.log('IMAGE_OFFSET   :', IMAGE_OFFSET_DEG);
+      console.log('sliceCenter    :', sliceCenter, '° (angle of winner\'s center in wheel frame)');
+      console.log('toTop          :', toTop, '° (rotation needed to bring center to pointer)');
+      console.log('extraSpins     :', extraSpins);
+      console.log('targetAngle    :', targetAngle);
+      console.log('currentAngle before:', currentAngle);
+      console.log('finalAngle     :', currentAngle + targetAngle);
+
+      isSpinning = true;
+      currentAngle += targetAngle;
+      wheelImg.style.transition = 'transform 6s cubic-bezier(0.17, 0.67, 0.12, 1.0)';
+      wheelImg.style.transform  = `rotate(${currentAngle}deg)`;
+
+      console.log('CSS transform  : rotate(' + currentAngle + 'deg)');
+      console.log('Wheel resting angle after stop (mod 360):', currentAngle % 360);
+
+      setTimeout(() => {
+        isSpinning = false;
+
+        // Visual verification: after rotating by currentAngle, which slice center lands at 0° (top)?
+        // A slice with original center C ends up at (C + currentAngle) % 360 after rotation.
+        // We want (C + currentAngle) % 360 ≈ 0  →  C ≈ (-currentAngle) % 360
+        const targetCenter = ((-(currentAngle % 360)) + 360) % 360;
+        let landedSlice = 0;
+        let minDiff = 360;
+        for (let i = 0; i < SLICE_COUNT; i++) {
+          const center = ((i * SLICE_DEG + SLICE_DEG / 2 + IMAGE_OFFSET_DEG) + 360) % 360;
+          const diff = Math.min(Math.abs(center - targetCenter), 360 - Math.abs(center - targetCenter));
+          if (diff < minDiff) { minDiff = diff; landedSlice = i; }
+        }
+        console.log('─── After spin ───');
+        console.log('currentAngle (total)  :', currentAngle);
+        console.log('targetCenter          :', targetCenter, '° (slice center that should be at top)');
+        console.log('landedSlice (visual)  :', landedSlice, '→', SLICE_PRIZES[landedSlice]?.name);
+        console.log('Expected winnerIdx    :', winnerIdx, '→', SLICE_PRIZES[winnerIdx].name);
+        console.log('Match?                :', landedSlice === winnerIdx ? '✅ YES' : '❌ NO — diff: ' + ((landedSlice - winnerIdx + SLICE_COUNT) % SLICE_COUNT) + ' slices');
+
+        if (stock[winnerIdx] > 0) stock[winnerIdx]--;
+        saveStock(stock);
+
+        const prize = SLICE_PRIZES[winnerIdx];
+        winPrizeText.textContent = prize.name;
+        winPrizeImg.src          = prize.img;
+
+        rouletteScr.classList.add('hidden');
+        winScr.classList.remove('hidden');
+
+        // Check if that was the last prize
+        if (totalStock() === 0) {
+          console.warn('⚠️ Último premio entregado — stock agotado');
+        }
+      }, 6300);
+    });
+
+    /* ── Back / replay ── */
+    document.getElementById('next-participant-win').addEventListener('click', () => {
+      location.reload();
+      winScr.classList.add('hidden');
+      if (!checkStock()) return;
+      rouletteScr.classList.remove('hidden');
+    });
+
+    /* ── Admin screen ── */
+    document.getElementById('secret-btn').addEventListener('click', () => {
+      rouletteScr.classList.add('hidden');
+      winScr.classList.add('hidden');
+      nostockScr.classList.add('hidden');
+      renderAdmin();
+      document.getElementById('admin-screen').classList.remove('hidden');
+    });
+
+    document.getElementById('close-admin').addEventListener('click', () => {
+      document.getElementById('admin-screen').classList.add('hidden');
+      if (!checkStock()) return;
+      rouletteScr.classList.remove('hidden');
+    });
+
+    function renderAdmin() {
+      const container = document.getElementById('stock-container');
+      container.innerHTML = '';
+      for (let i = 0; i < SLICE_COUNT; i++) {
+        const prize = SLICE_PRIZES[i];
+        const div = document.createElement('div');
+        div.className = 'stock-item';
+        div.innerHTML = `
+          <img class="prize-icon" src="${prize.img}" alt="${prize.name}">
+          <label>
+            ${prize.name}
+            <span class="slice-tag">Sector ${i + 1}</span>
+          </label>
+          <input type="number" min="0" value="${stock[i] ?? 0}">
+        `;
+        div.querySelector('input').addEventListener('change', (e) => {
+          stock[i] = parseInt(e.target.value) || 0;
+          saveStock(stock);
+        });
+        container.appendChild(div);
+      }
+    }
+
+    document.getElementById('reset-stock').addEventListener('click', () => {
+      if (!confirm('¿Resetear todo el stock al valor por defecto (10)?')) return;
+      stock = { ...defaultStock };
+      saveStock(stock);
+      renderAdmin();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  color: #000;
+}
+
+.container {
+  background: white;
+  border-radius: 16px;
+  padding: 48px 32px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+.logo {
+  margin-bottom: 28px;
+}
+
+.logo img {
+  height: 64px;
+  width: auto;
+}
+
+
+.subtitle {
+  font-size: 15px;
+  color: #555;
+  margin: 0 0 40px 0;
+  line-height: 1.4;
+}
+
+.form-wrapper {
+  max-width: 384px !important;          /* coincide con el width de los inputs */
+  margin: 0 auto;
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 28px;
+}
+
+label {
+  text-align: left;
+  display: block;
+  color: #000;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="email"] {
+  appearance: none;
+  background-color: rgb(255, 255, 255);
+  border: 0.8px solid rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  box-sizing: border-box;
+  color: rgb(0, 0, 0);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  height: 40px;
+  line-height: 20px;
+  margin: 6px 0 0 0;
+  padding: 8px 12px;
+  width: 100%;
+  max-width: 384px;
+  transition: box-shadow 0.15s ease;
+}
+
+/* Estado por defecto (no enfocado) */
+input:not(:focus) {
+  box-shadow: none;   /* quitamos cualquier sombra extra en estado normal */
+}
+
+/* Solo el input enfocado tiene el borde negro grueso con efecto "doble" */
+input:focus {
+  outline: none;
+  border: 0.8px solid #000;
+  box-shadow: 
+    rgb(255, 255, 255) 0 0 0 2px,
+    rgb(0, 0, 0) 0 0 0 4px;
+}
+
+.btn {
+  background: #000;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 14px 0;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+  max-width: 384px;
+}
+
+.btn:hover {
+  background: #222;
+}
+
+@media (max-width: 500px) {
+  .container {
+    padding: 36px 24px;
+  }
+  .form-wrapper {
+    max-width: 100%;
+  }
+}
